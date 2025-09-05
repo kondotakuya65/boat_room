@@ -57,7 +57,7 @@
 				const tr = document.createElement('tr');
 				const boatCell = row.boat_link ? `<a href="${row.boat_link}" target="_blank">${row.boat_name}</a>` : row.boat_name;
 				const roomCell = row.room_link ? `<a href="${row.room_link}" target="_blank">${row.room_name}</a>` : row.room_name;
-				const roomLinkCell = row.room_link ? `<a href="${row.room_link}" target="_blank">Open</a>` : '';
+				const roomLinkCell = row.room_link ? `<a href="${row.room_link}" target="_blank">${row.room_link}</a>` : '';
 				tr.innerHTML = `
 					<td>${row.start}</td>
 					<td>${boatCell}</td>

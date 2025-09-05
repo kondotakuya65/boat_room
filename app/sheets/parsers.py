@@ -1,5 +1,6 @@
 from typing import List, Dict, Callable
 from .client import get_gspread_client
+from .open_trip_parser import parse_open_trip_from_sheets
 
 # Each parser returns a list of room dicts: {boat_name, boat_link?, room_name, room_link, occupied: [(start,end), ...]}
 
@@ -7,8 +8,9 @@ Parser = Callable[[], List[Dict]]
 
 
 def parser_boat_1() -> List[Dict]:
-    # TODO: implement after schema provided
-    return []
+    # LaMain Voyages I uses OPEN TRIP layout directly from Google Sheets
+    boat_name = "LaMain Voyages I"
+    return parse_open_trip_from_sheets(boat_name)
 
 
 def parser_boat_2() -> List[Dict]:
@@ -79,5 +81,4 @@ def get_all_rooms_with_occupied_ranges() -> List[Dict]:
 
 
 def refresh_all():
-    # For now, no cache; simply a placeholder to align with API contract.
     return True
