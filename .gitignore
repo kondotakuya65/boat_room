@@ -1,0 +1,11 @@
+api_key.json
+*.pyc
+__pycache__
+.vscode
+.env
+.DS_Store
+.idea
+.pytest_cache
+.coverage
+.pytest_cache
+.env

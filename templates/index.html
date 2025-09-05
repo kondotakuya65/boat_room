@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Boat Room Availability</title>
+	<link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+	<div class="container">
+		<h1>Boat Room Availability</h1>
+		<form id="search-form">
+			<label>Start Date
+				<input type="date" id="start" required />
+			</label>
+			<label>End Date
+				<input type="date" id="end" required />
+			</label>
+			<button type="submit">Search</button>
+		</form>
+
+		<table id="results">
+			<thead>
+				<tr>
+					<th>Start Date</th>
+					<th>Boat name</th>
+					<th>Room name</th>
+					<th>Link To Room</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</div>
+	<script>
+		const form = document.getElementById('search-form');
+		const tbody = document.querySelector('#results tbody');
+
+		function fmt(d){
+			const date = new Date(d);
+			const y = date.getFullYear();
+			const m = String(date.getMonth()+1).padStart(2,'0');
+			const day = String(date.getDate()).padStart(2,'0');
+			return `${y}/${m}/${day}`;
+		}
+
+		form.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			tbody.innerHTML = '';
+			const start = document.getElementById('start').value;
+			const end = document.getElementById('end').value;
+			if(!start || !end) return;
+			const qs = new URLSearchParams({ start: fmt(start), end: fmt(end) });
+			const res = await fetch(`/availability?${qs.toString()}`);
+			if(!res.ok){ alert('Failed to fetch availability'); return; }
+			const data = await res.json();
+			for(const row of data){
+				const tr = document.createElement('tr');
+				const boatCell = row.boat_link ? `<a href="${row.boat_link}" target="_blank">${row.boat_name}</a>` : row.boat_name;
+				const roomCell = row.room_link ? `<a href="${row.room_link}" target="_blank">${row.room_name}</a>` : row.room_name;
+				const roomLinkCell = row.room_link ? `<a href="${row.room_link}" target="_blank">Open</a>` : '';
+				tr.innerHTML = `
+					<td>${row.start}</td>
+					<td>${boatCell}</td>
+					<td>${roomCell}</td>
+					<td>${roomLinkCell}</td>
+				`;
+				tbody.appendChild(tr);
+			}
+		});
+	</script>
+</body>
+</html>
