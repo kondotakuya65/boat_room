@@ -1,6 +1,7 @@
 from typing import List, Dict, Callable
 from .client import get_gspread_client
 from .open_trip_parser import parse_open_trip_from_sheets
+from .sip1_parser import parse_sip1_from_sheets
 
 # Each parser returns a list of room dicts: {boat_name, boat_link?, room_name, room_link, occupied: [(start,end), ...]}
 
@@ -14,7 +15,9 @@ def parser_boat_1() -> List[Dict]:
 
 
 def parser_boat_2() -> List[Dict]:
-    return []
+    # SIP 1 uses OT SIP 1 layout directly from Google Sheets
+    boat_name = "SIP 1"
+    return parse_sip1_from_sheets(boat_name)
 
 
 def parser_boat_3() -> List[Dict]:

@@ -34,9 +34,9 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "SIP 1": {
         "boat_link": "https://lombok-indonesia.org/sip-komodo-tour/",
-        "sheet_link": "",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1_x5xSDoWTH0IeJjDq-FnS4uDNyGtZLecPBwdM7XYhd8/edit",
         "rooms": {
-            "Private Cabin 1": {"room_link": "https://lombok-indonesia.org/sip-komodo-tour/cabin-1/"},
+            "Master Ocean 1": {"room_link": "https://lombok-indonesia.org/sip-komodo-tour/cabin-1/"},
             "Private Cabin 2": {"room_link": "https://lombok-indonesia.org/sip-komodo-tour/cabin-2/"},
             "Private Cabin 3": {"room_link": "https://lombok-indonesia.org/sip-komodo-tour/cabin-3/"},
             "Private Cabin 4": {"room_link": "https://lombok-indonesia.org/sip-komodo-tour/cabin-4/"},

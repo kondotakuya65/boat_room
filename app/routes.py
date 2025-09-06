@@ -70,6 +70,11 @@ async def availability(start: str = Query(..., description="YYYY/MM/DD"), end: s
             start_date = datetime.strptime(occupied_start, "%Y/%m/%d").date()
             all_sheet_start_dates.add(start_date)
     
+    # For SIP 1, also add all sheet start dates (including available ones)
+    from .sheets.sip1_parser import get_sip1_all_sheet_start_dates
+    sip1_sheet_dates = get_sip1_all_sheet_start_dates("SIP 1")
+    all_sheet_start_dates.update(sip1_sheet_dates)
+    
     results: List[AvailabilityResult] = []
     for room in rooms:
         # Find all available start dates within the query range
