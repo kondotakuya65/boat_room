@@ -36,9 +36,9 @@ def dump_worksheet_colors(sheet_link: str, worksheet_title: str, boat_name: str)
             for cell in row.get("values", []) or []:
                 bg = (cell.get("effectiveFormat", {}) or {}).get("backgroundColor", {}) or {}
                 row_colors.append({
-                    "r": bg.get("red"),
-                    "g": bg.get("green"),
-                    "b": bg.get("blue"),
+                    "r": bg.get("red", 0),  # Default to 0 if missing
+                    "g": bg.get("green", 0),  # Default to 0 if missing
+                    "b": bg.get("blue", 0),  # Default to 0 if missing
                 })
             colors.append(row_colors)
 
@@ -78,9 +78,9 @@ def get_worksheet_colors(service, spreadsheet_id: str, worksheet_title: str) -> 
             for cell in row.get("values", []) or []:
                 bg = (cell.get("effectiveFormat", {}) or {}).get("backgroundColor", {}) or {}
                 row_colors.append({
-                    "r": bg.get("red"),
-                    "g": bg.get("green"),
-                    "b": bg.get("blue"),
+                    "r": bg.get("red", 0),  # Default to 0 if missing
+                    "g": bg.get("green", 0),  # Default to 0 if missing
+                    "b": bg.get("blue", 0),  # Default to 0 if missing
                 })
             colors.append(row_colors)
 

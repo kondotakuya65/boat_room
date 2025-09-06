@@ -45,7 +45,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "KLM Arfisyana": {
         "boat_link": "https://lombok-indonesia.org/arfisyana-indah-komodo-tour/",
-        "sheet_link": "",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1il_tM-u_QWekZCFyVmXx-ZjysHCfHum3DKxtJFp6RRs/edit",
         "rooms": {
             "Master Room 01": {"room_link": "https://lombok-indonesia.org/arfisyana-indah-komodo-tour/master-cabin-1/"},
             "Master Room 02": {"room_link": "https://lombok-indonesia.org/arfisyana-indah-komodo-tour/master-cabin-2/"},

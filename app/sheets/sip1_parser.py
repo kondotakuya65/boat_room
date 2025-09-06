@@ -308,5 +308,4 @@ def get_sip1_all_sheet_start_dates(boat_name: str, worksheet_title: str = "OT SI
         return all_sheet_start_dates
         
     except Exception as e:
-        print(f"Error getting sheet start dates for {boat_name}: {e}")
         return set()

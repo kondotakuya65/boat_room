@@ -75,21 +75,47 @@ async def availability(start: str = Query(..., description="YYYY/MM/DD"), end: s
     sip1_sheet_dates = get_sip1_all_sheet_start_dates("SIP 1")
     all_sheet_start_dates.update(sip1_sheet_dates)
     
+    # For KLM Arfisyana, also add all sheet start dates (including available ones)
+    from .sheets.arfisyana_parser import get_arfisyana_all_sheet_start_dates
+    arfisyana_sheet_dates = get_arfisyana_all_sheet_start_dates("KLM Arfisyana")
+    all_sheet_start_dates.update(arfisyana_sheet_dates)
+    
     results: List[AvailabilityResult] = []
     for room in rooms:
-        # Find all available start dates within the query range
-        available_dates = find_available_start_dates(start, end, room["occupied"], all_sheet_start_dates)
+        boat_name = room["boat_name"]
+        room_name = room["room_name"]
         
-        # For each available date, create a result
-        for available_date in available_dates:
-            boat_name = room["boat_name"]
-            room_name = room["room_name"]
-            results.append(AvailabilityResult(
-                start=available_date,
-                boat_name=boat_name,
-                boat_link=get_boat_link(boat_name),
-                room_name=room_name,
-                room_link=room.get("room_link") or get_room_link(boat_name, room_name)
-            ))
+        # Special handling for ARFISYANA "All Rooms" pattern
+        if boat_name == "KLM Arfisyana" and room_name == "All Rooms":
+            # For ARFISYANA, the room entry contains available_dates directly
+            available_dates = room.get("available_dates", [])
+            
+            # Filter by query range
+            from datetime import datetime
+            request_start_date = datetime.strptime(start, "%Y/%m/%d").date()
+            request_end_date = datetime.strptime(end, "%Y/%m/%d").date()
+            
+            for available_date in available_dates:
+                if request_start_date <= available_date <= request_end_date:
+                    results.append(AvailabilityResult(
+                        start=available_date.strftime("%Y/%m/%d"),
+                        boat_name=boat_name,
+                        boat_link=get_boat_link(boat_name),
+                        room_name=room_name,
+                        room_link=None  # No specific room link for "All Rooms"
+                    ))
+        else:
+            # Standard logic for other boats
+            available_dates = find_available_start_dates(start, end, room["occupied"], all_sheet_start_dates)
+            
+            # For each available date, create a result
+            for available_date in available_dates:
+                results.append(AvailabilityResult(
+                    start=available_date,
+                    boat_name=boat_name,
+                    boat_link=get_boat_link(boat_name),
+                    room_name=room_name,
+                    room_link=room.get("room_link") or get_room_link(boat_name, room_name)
+                ))
     results.sort(key=lambda r: (r.start, r.boat_name.lower(), r.room_name.lower()))
     return results
