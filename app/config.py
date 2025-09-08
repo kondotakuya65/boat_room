@@ -56,7 +56,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "VMI Vinca": {
         "boat_link": "https://lombok-indonesia.org/vinca-voyages-komodo-tour/",
-        "sheet_link": "",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1x74uSMhh7D71orfDQ2a11CJ-mtOlNREWOFkjBp-vOvk/edit",
         "rooms": {
             "Japanese 1": {"room_link": "https://lombok-indonesia.org/vinca-voyages-komodo-tour/japanese-1/"},
             "Japanese 2": {"room_link": "https://lombok-indonesia.org/vinca-voyages-komodo-tour/japanese-2/"},
@@ -68,7 +68,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "VMI Raffles": {
         "boat_link": "https://lombok-indonesia.org/raffles-cruise-komodo-tour/",
-        "sheet_link": "",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1x74uSMhh7D71orfDQ2a11CJ-mtOlNREWOFkjBp-vOvk/edit",
         "rooms": {
             "Malacca I": {"room_link": "https://lombok-indonesia.org/raffles-cruise-komodo-tour/malacca-i/"},
             "Malacca II": {"room_link": "https://lombok-indonesia.org/raffles-cruise-komodo-tour/malacca-ii/"},

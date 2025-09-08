@@ -2,6 +2,7 @@ from typing import List, Dict, Callable
 from .client import get_gspread_client
 from .open_trip_parser import parse_open_trip_from_sheets
 from .sip1_parser import parse_sip1_from_sheets
+from .vmi_parser import parse_vinca_from_sheets, parse_raffles_from_sheets
 from .arfisyana_parser import parse_arfisyana_from_sheets
 
 # Each parser returns a list of room dicts: {boat_name, boat_link?, room_name, room_link, occupied: [(start,end), ...]}
@@ -28,11 +29,15 @@ def parser_boat_3() -> List[Dict]:
 
 
 def parser_boat_4() -> List[Dict]:
-    return []
+    # VMI Vinca uses PRIVATE VINCA 2025 calendar layout
+    boat_name = "VMI Vinca"
+    return parse_vinca_from_sheets(boat_name)
 
 
 def parser_boat_5() -> List[Dict]:
-    return []
+    # VMI Raffles uses PRIVATE RAFFLES 2025 calendar layout
+    boat_name = "VMI Raffles"
+    return parse_raffles_from_sheets(boat_name)
 
 
 def parser_boat_6() -> List[Dict]:
@@ -88,3 +93,20 @@ def get_all_rooms_with_occupied_ranges() -> List[Dict]:
 
 def refresh_all():
     return True
+
+
+# Map boat names to their specific parser functions for targeted parsing
+_BOAT_TO_PARSER: dict[str, Parser] = {
+    "LaMain Voyages I": parser_boat_1,
+    "SIP 1": parser_boat_2,
+    "KLM Arfisyana": parser_boat_3,
+    "VMI Vinca": parser_boat_4,
+    "VMI Raffles": parser_boat_5,
+}
+
+
+def get_rooms_with_occupied_ranges_for_boat(boat_name: str) -> List[Dict]:
+    parser = _BOAT_TO_PARSER.get(boat_name)
+    if not parser:
+        return []
+    return parser()

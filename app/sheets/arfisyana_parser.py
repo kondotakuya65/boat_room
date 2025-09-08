@@ -30,7 +30,7 @@ def _is_available_color(color: dict) -> bool:
     return r == 0 and g == 1 and b == 1
 
 def _parse_arfisyana_calendar(rows: List[List[str]], colors: List[List[dict]], boat_name: str) -> List[Dict]:
-    """Parse the ARFISYANA INDAH calendar layout"""
+    """Parse the ARFISYANA INDAH calendar layout using proper month section detection"""
     results = []
     available_dates = []
     
@@ -41,43 +41,70 @@ def _parse_arfisyana_calendar(rows: List[List[str]], colors: List[List[dict]], b
         "SEPTEMBER": 9, "OCTOBER": 10, "NOVEMBER": 11, "DECEMBER": 12
     }
     
-    # Find month headers and parse calendar sections
-    current_month = None
     current_year = 2025
-    
+
+    # Step 1: Find all month sections
+    month_sections = []
     for i, row in enumerate(rows):
-        # Look for month headers first - check every row for month changes
-        # Note: Don't break early as there might be multiple months in the same row
-        row_months = []
+        # Look for month names in this row
         for j, cell in enumerate(row):
             cell_upper = cell.strip().upper()
-            # Check if any month name is contained in the cell
             for month_name, month_num in month_map.items():
                 if month_name in cell_upper:
-                    row_months.append((month_name, month_num, j))
-        
-        # Update current month if we found one in this row
-        if row_months:
-            # Use the first month found in the row
-            current_month = row_months[0][1]
-        
-        # Look for date rows (containing day numbers)
-        if current_month and any(cell.strip().isdigit() and len(cell.strip()) <= 2 for cell in row):
-            # This is a date row
-            for j, cell in enumerate(row):
-                if cell.strip().isdigit() and len(cell.strip()) <= 2:
-                    day = cell.strip()
-                    parsed_date = _parse_calendar_date(day, current_month, current_year)
+                    # Found a month header at position (i, j)
+                    # Simple column area detection based on header position
+                    if j <= 3:  # First month in the row (B-H)
+                        month_start_col = 1  # Column B (index 1)
+                        month_end_col = 8    # Column H (index 7, so range is 1-7)
+                    else:  # Second month in the row (J-P)
+                        month_start_col = 9   # Column J (index 9)
+                        month_end_col = 16    # Column P (index 15, so range is 9-15)
                     
-                    if parsed_date:
-                        # Check if this date cell is available (cyan)
+                    month_sections.append({
+                        'month': month_num,
+                        'month_name': month_name,
+                        'start_col': month_start_col,
+                        'end_col': month_end_col,
+                        'header_row': i
+                    })
+    
+    # Step 2: Parse date cells within each month section with proper row boundaries
+    for section in month_sections:
+        month_num = section['month']
+        start_col = section['start_col']
+        end_col = section['end_col']
+        header_row = section['header_row']
+        
+        # Define the row boundaries for this month section
+        # Each month section has a specific number of rows (typically 6-7 rows)
+        # Start from header_row + 2 (skip header and weekday rows)
+        # End at header_row + 8 (6 rows of dates)
+        start_row = header_row + 2
+        end_row = header_row + 8
+        
+        # Parse date cells within the month section's row and column boundaries
+        for i in range(start_row, min(end_row, len(rows))):
+            if i >= len(rows):
+                break
+                
+            row = rows[i]
+            
+            # Parse date cells within this month's column range
+            for j in range(start_col, min(end_col, len(row))):
+                cell_text = (row[j] or "").strip()
+                if cell_text.isdigit() and len(cell_text) <= 2:
+                    parsed_date = _parse_calendar_date(cell_text, month_num, current_year)
+                    if not parsed_date:
+                        continue
+                    # Only process dates that are actually in the target year (2025)
+                    if parsed_date.year == current_year:
                         if i < len(colors) and j < len(colors[i]):
                             color = colors[i][j]
                             is_available = _is_available_color(color)
                             if is_available:
                                 available_dates.append(parsed_date)
     
-    # Create a single "All Rooms" entry with all available dates
+        # Create a single "All Rooms" entry with all available dates
     if available_dates:
         results.append({
             "boat_name": boat_name,
@@ -108,8 +135,9 @@ def parse_arfisyana_from_sheets(boat_name: str, worksheet_title: str = "ARFISYAN
         sheet = gc.open_by_url(sheet_link)
         worksheet = sheet.worksheet(worksheet_title)
         
-        # Get all values from the worksheet
-        rows = worksheet.get_all_values()
+        # Get all values from the worksheet with explicit range to get all columns
+        # The worksheet has 26 columns but get_all_values() only returns 16
+        rows = worksheet.get('A1:Z1000')  # Get columns A-Z to ensure we get all data
         
         # Get colors using the sheets service
         sheets_service = get_sheets_service()
@@ -139,14 +167,15 @@ def get_arfisyana_all_sheet_start_dates(boat_name: str, worksheet_title: str = "
         sheet = gc.open_by_url(sheet_link)
         worksheet = sheet.worksheet(worksheet_title)
         
-        # Get all values from the worksheet
-        rows = worksheet.get_all_values()
+        # Get all values from the worksheet with explicit range to get all columns
+        # The worksheet has 26 columns but get_all_values() only returns 16
+        rows = worksheet.get('A1:Z1000')  # Get columns A-Z to ensure we get all data
         
         # Get colors using the sheets service
         sheets_service = get_sheets_service()
         colors = get_worksheet_colors(sheets_service, sheet.id, worksheet_title)
         
-        # Parse all dates from the calendar
+        # Parse all dates from the calendar using proper month section detection
         all_dates = set()
         
         # Month mapping
@@ -156,26 +185,53 @@ def get_arfisyana_all_sheet_start_dates(boat_name: str, worksheet_title: str = "
             "SEPTEMBER": 9, "OCTOBER": 10, "NOVEMBER": 11, "DECEMBER": 12
         }
         
-        current_month = None
         current_year = 2025
-        
+
+        # Step 1: Find all month sections
+        month_sections = []
         for i, row in enumerate(rows):
-            # Look for month headers
+            # Look for month names in this row
             for j, cell in enumerate(row):
                 cell_upper = cell.strip().upper()
-                # Check if any month name is contained in the cell
                 for month_name, month_num in month_map.items():
                     if month_name in cell_upper:
-                        current_month = month_num
-                        break
+                        # Found a month header at position (i, j)
+                        # Simple column area detection based on header position
+                        if j <= 3:  # First month in the row (B-H)
+                            month_start_col = 1  # Column B (index 1)
+                            month_end_col = 8    # Column H (index 7, so range is 1-7)
+                        else:  # Second month in the row (J-P)
+                            month_start_col = 9   # Column J (index 9)
+                            month_end_col = 16    # Column P (index 15, so range is 9-15)
+                        
+                        month_sections.append({
+                            'month': month_num,
+                            'start_col': month_start_col,
+                            'end_col': month_end_col,
+                            'header_row': i
+                        })
+        
+        # Step 2: Extract all date numbers from each month section
+        for section in month_sections:
+            month_num = section['month']
+            start_col = section['start_col']
+            end_col = section['end_col']
+            header_row = section['header_row']
             
-            # Look for date rows
-            if current_month and any(cell.strip().isdigit() and len(cell.strip()) <= 2 for cell in row):
-                for j, cell in enumerate(row):
-                    if cell.strip().isdigit() and len(cell.strip()) <= 2:
-                        day = cell.strip()
-                        parsed_date = _parse_calendar_date(day, current_month, current_year)
-                        if parsed_date:
+            # Define the row boundaries for this month section
+            start_row = header_row + 2
+            end_row = header_row + 8
+            
+            for i in range(start_row, min(end_row, len(rows))):
+                if i >= len(rows):
+                    break
+                    
+                row = rows[i]
+                for j in range(start_col, min(end_col, len(row))):
+                    cell_text = (row[j] or "").strip()
+                    if cell_text.isdigit() and len(cell_text) <= 2:
+                        parsed_date = _parse_calendar_date(cell_text, month_num, current_year)
+                        if parsed_date and parsed_date.year == current_year:
                             all_dates.add(parsed_date)
         
         return all_dates

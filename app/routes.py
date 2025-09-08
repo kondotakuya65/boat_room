@@ -3,7 +3,7 @@ from typing import List
 
 from .models import AvailabilityResult
 from .availability import is_free_for_range, find_available_start_dates
-from .sheets.parsers import get_all_rooms_with_occupied_ranges, refresh_all
+from .sheets.parsers import get_all_rooms_with_occupied_ranges, get_rooms_with_occupied_ranges_for_boat, refresh_all
 from .config import get_boat_link, get_room_link, BOAT_CATALOG
 from .sheets.sampler import download_samples_for_spreadsheet
 from .sheets.color_dump import dump_worksheet_colors
@@ -56,11 +56,15 @@ async def color_dump(
 
 
 @router.get("/availability", response_model=List[AvailabilityResult])
-async def availability(start: str = Query(..., description="YYYY/MM/DD"), end: str = Query(..., description="YYYY/MM/DD")):
+async def availability(
+    start: str = Query(..., description="YYYY/MM/DD"),
+    end: str = Query(..., description="YYYY/MM/DD"),
+    boat: str | None = Query(None, description="Optional boat name to limit parsing"),
+):
     if len(start) != 10 or len(end) != 10:
         raise HTTPException(status_code=400, detail="Dates must be YYYY/MM/DD")
 
-    rooms = get_all_rooms_with_occupied_ranges()
+    rooms = get_all_rooms_with_occupied_ranges() if not boat else get_rooms_with_occupied_ranges_for_boat(boat)
     
     # Collect all unique start dates from all rooms (these are the actual start dates in the sheet)
     all_sheet_start_dates = set()
@@ -71,23 +75,24 @@ async def availability(start: str = Query(..., description="YYYY/MM/DD"), end: s
             all_sheet_start_dates.add(start_date)
     
     # For SIP 1, also add all sheet start dates (including available ones)
-    from .sheets.sip1_parser import get_sip1_all_sheet_start_dates
-    sip1_sheet_dates = get_sip1_all_sheet_start_dates("SIP 1")
-    all_sheet_start_dates.update(sip1_sheet_dates)
+    if not boat or boat == "SIP 1":
+        from .sheets.sip1_parser import get_sip1_all_sheet_start_dates
+        sip1_sheet_dates = get_sip1_all_sheet_start_dates("SIP 1")
+        all_sheet_start_dates.update(sip1_sheet_dates)
     
     # For KLM Arfisyana, also add all sheet start dates (including available ones)
-    from .sheets.arfisyana_parser import get_arfisyana_all_sheet_start_dates
-    arfisyana_sheet_dates = get_arfisyana_all_sheet_start_dates("KLM Arfisyana")
-    all_sheet_start_dates.update(arfisyana_sheet_dates)
+    if not boat or boat == "KLM Arfisyana":
+        from .sheets.arfisyana_parser import get_arfisyana_all_sheet_start_dates
+        arfisyana_sheet_dates = get_arfisyana_all_sheet_start_dates("KLM Arfisyana")
+        all_sheet_start_dates.update(arfisyana_sheet_dates)
     
     results: List[AvailabilityResult] = []
     for room in rooms:
         boat_name = room["boat_name"]
         room_name = room["room_name"]
         
-        # Special handling for ARFISYANA "All Rooms" pattern
-        if boat_name == "KLM Arfisyana" and room_name == "All Rooms":
-            # For ARFISYANA, the room entry contains available_dates directly
+        # Special handling for calendar-style boats that expose available_dates directly
+        if room.get("available_dates") is not None:
             available_dates = room.get("available_dates", [])
             
             # Filter by query range
@@ -102,7 +107,7 @@ async def availability(start: str = Query(..., description="YYYY/MM/DD"), end: s
                         boat_name=boat_name,
                         boat_link=get_boat_link(boat_name),
                         room_name=room_name,
-                        room_link=None  # No specific room link for "All Rooms"
+                        room_link=room.get("room_link") or get_room_link(boat_name, room_name)
                     ))
         else:
             # Standard logic for other boats
