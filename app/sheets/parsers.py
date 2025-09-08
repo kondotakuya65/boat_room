@@ -6,6 +6,7 @@ from .vmi_parser import parse_vinca_from_sheets, parse_raffles_from_sheets
 from .arfisyana_parser import parse_arfisyana_from_sheets
 from .barakati_parser import parse_barakati_from_sheets
 from .elrora_parser import parse_elrora_from_sheets
+from .sehat_parser import parse_sehat_from_sheets
 
 # Each parser returns a list of room dicts: {boat_name, boat_link?, room_name, room_link, occupied: [(start,end), ...]}
 
@@ -13,53 +14,48 @@ Parser = Callable[[], List[Dict]]
 
 
 def parser_boat_1() -> List[Dict]:
-    # LaMain Voyages I uses OPEN TRIP layout directly from Google Sheets
     boat_name = "LaMain Voyages I"
     return parse_open_trip_from_sheets(boat_name)
 
 
 def parser_boat_2() -> List[Dict]:
-    # SIP 1 uses OT SIP 1 layout directly from Google Sheets
     boat_name = "SIP 1"
     return parse_sip1_from_sheets(boat_name)
 
 
 def parser_boat_3() -> List[Dict]:
-    # KLM Arfisyana uses ARFISYANA INDAH calendar layout directly from Google Sheets
     boat_name = "KLM Arfisyana"
     return parse_arfisyana_from_sheets(boat_name)
 
 
 def parser_boat_4() -> List[Dict]:
-    # VMI Vinca uses PRIVATE VINCA 2025 calendar layout
     boat_name = "VMI Vinca"
     return parse_vinca_from_sheets(boat_name)
 
 
 def parser_boat_5() -> List[Dict]:
-    # VMI Raffles uses PRIVATE RAFFLES 2025 calendar layout
     boat_name = "VMI Raffles"
     return parse_raffles_from_sheets(boat_name)
 
 
 def parser_boat_6() -> List[Dict]:
-    # Barakati uses table layout with month columns and date ranges row; white means available
     boat_name = "Barakati"
     return parse_barakati_from_sheets(boat_name)
 
 
 def parser_boat_7() -> List[Dict]:
-    # El Rora uses a similar layout; white means available
     boat_name = "El Rora"
     return parse_elrora_from_sheets(boat_name)
 
 
 def parser_boat_8() -> List[Dict]:
-    return []
+    boat_name = "Sehat Elona from Lombok"
+    return parse_sehat_from_sheets(boat_name)
 
 
 def parser_boat_9() -> List[Dict]:
-    return []
+    boat_name = "Sehat Elona from Labuan Bajo"
+    return parse_sehat_from_sheets(boat_name)
 
 
 def parser_boat_10() -> List[Dict]:
@@ -110,6 +106,8 @@ _BOAT_TO_PARSER: dict[str, Parser] = {
     "VMI Raffles": parser_boat_5,
     "Barakati": parser_boat_6,
     "El Rora": parser_boat_7,
+    "Sehat Elona from Lombok": parser_boat_8,
+    "Sehat Elona from Labuan Bajo": parser_boat_9,
 }
 
 
