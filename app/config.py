@@ -78,7 +78,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "Barakati": {
         "boat_link": "https://lombok-indonesia.org/barakati-komodo-tour/",
-        "sheet_link": "",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1i17VdC4vJ-ManrlfF4Zk23n11LGLYwnPykvN_aMBIUY/edit",
         "rooms": {
             "Wakatobi": {"room_link": "https://lombok-indonesia.org/barakati-komodo-tour/wakatobi/"},
             "Wolio": {"room_link": "https://lombok-indonesia.org/barakati-komodo-tour/wolio/"},

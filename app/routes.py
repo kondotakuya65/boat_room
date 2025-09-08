@@ -85,6 +85,12 @@ async def availability(
         from .sheets.arfisyana_parser import get_arfisyana_all_sheet_start_dates
         arfisyana_sheet_dates = get_arfisyana_all_sheet_start_dates("KLM Arfisyana")
         all_sheet_start_dates.update(arfisyana_sheet_dates)
+
+    # For Barakati, also add all sheet start dates (including available ones)
+    if not boat or boat == "Barakati":
+        from .sheets.barakati_parser import get_barakati_all_sheet_start_dates
+        barakati_sheet_dates = get_barakati_all_sheet_start_dates("Barakati")
+        all_sheet_start_dates.update(barakati_sheet_dates)
     
     results: List[AvailabilityResult] = []
     for room in rooms:
