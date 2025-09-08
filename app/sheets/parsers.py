@@ -5,6 +5,7 @@ from .sip1_parser import parse_sip1_from_sheets
 from .vmi_parser import parse_vinca_from_sheets, parse_raffles_from_sheets
 from .arfisyana_parser import parse_arfisyana_from_sheets
 from .barakati_parser import parse_barakati_from_sheets
+from .elrora_parser import parse_elrora_from_sheets
 
 # Each parser returns a list of room dicts: {boat_name, boat_link?, room_name, room_link, occupied: [(start,end), ...]}
 
@@ -48,7 +49,9 @@ def parser_boat_6() -> List[Dict]:
 
 
 def parser_boat_7() -> List[Dict]:
-    return []
+    # El Rora uses a similar layout; white means available
+    boat_name = "El Rora"
+    return parse_elrora_from_sheets(boat_name)
 
 
 def parser_boat_8() -> List[Dict]:
@@ -106,6 +109,7 @@ _BOAT_TO_PARSER: dict[str, Parser] = {
     "VMI Vinca": parser_boat_4,
     "VMI Raffles": parser_boat_5,
     "Barakati": parser_boat_6,
+    "El Rora": parser_boat_7,
 }
 
 

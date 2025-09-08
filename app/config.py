@@ -89,7 +89,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "El Rora": {
         "boat_link": "https://lombok-indonesia.org/elrora-komodo-tour/",
-        "sheet_link": "",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1fok_jTsi6FAdyxckjQimUmFIHE6r94PFU7_Y8bU68VE/edit",
         "rooms": {
             "Love": {"room_link": "https://lombok-indonesia.org/elrora-komodo-tour/love/"},
             "Kindness": {"room_link": "https://lombok-indonesia.org/elrora-komodo-tour/kindness/"},
