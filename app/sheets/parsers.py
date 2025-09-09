@@ -6,6 +6,7 @@ from .vmi_parser import parse_vinca_from_sheets, parse_raffles_from_sheets
 from .arfisyana_parser import parse_arfisyana_from_sheets
 from .barakati_parser import parse_barakati_from_sheets
 from .elrora_parser import parse_elrora_from_sheets
+from .kanha_parser import parse_kanha_from_sheets
 from .sehat_parser import parse_sehat_from_sheets
 
 # Each parser returns a list of room dicts: {boat_name, boat_link?, room_name, room_link, occupied: [(start,end), ...]}
@@ -59,15 +60,18 @@ def parser_boat_9() -> List[Dict]:
 
 
 def parser_boat_10() -> List[Dict]:
-    return []
+    boat_name = "Kanha Loka"
+    return parse_kanha_from_sheets(boat_name)
 
 
 def parser_boat_11() -> List[Dict]:
-    return []
+    boat_name = "Kanha Natta"
+    return parse_kanha_from_sheets(boat_name)
 
 
 def parser_boat_12() -> List[Dict]:
-    return []
+    boat_name = "Kanha Citta"
+    return parse_kanha_from_sheets(boat_name)
 
 
 _PARSERS: List[Parser] = [
@@ -108,6 +112,9 @@ _BOAT_TO_PARSER: dict[str, Parser] = {
     "El Rora": parser_boat_7,
     "Sehat Elona from Lombok": parser_boat_8,
     "Sehat Elona from Labuan Bajo": parser_boat_9,
+    "Kanha Loka": parser_boat_10,
+    "Kanha Natta": parser_boat_11,
+    "Kanha Citta": parser_boat_12,
 }
 
 

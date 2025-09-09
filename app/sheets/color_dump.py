@@ -85,3 +85,46 @@ def get_worksheet_colors(service, spreadsheet_id: str, worksheet_title: str) -> 
             colors.append(row_colors)
 
     return colors
+
+
+def get_worksheet_borders(service, spreadsheet_id: str, worksheet_title: str) -> list:
+    """Get worksheet cell borders. Returns 2D array with border styles per side.
+
+    Each cell is a dict: {"left": style|None, "right": style|None, "top": style|None, "bottom": style|None}
+    Styles are Google enum strings like "SOLID", "SOLID_MEDIUM", "SOLID_THICK", "DASHED", "DOUBLE", etc.
+    """
+    # Find the sheetId for the given title
+    meta = service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+    target_sheet_id = None
+    for s in meta.get("sheets", []):
+        props = s.get("properties", {})
+        if props.get("title") == worksheet_title:
+            target_sheet_id = props.get("sheetId")
+            break
+    if target_sheet_id is None:
+        raise ValueError("Worksheet not found")
+
+    rng = f"{worksheet_title}!A1:ZZ999"
+    grid = service.spreadsheets().get(
+        spreadsheetId=spreadsheet_id,
+        ranges=[rng],
+        includeGridData=True
+    ).execute()
+
+    grid_data = grid["sheets"][0].get("data", [])
+    borders = []
+    for block in grid_data:
+        for row in block.get("rowData", []) or []:
+            row_borders = []
+            for cell in row.get("values", []) or []:
+                fmt = (cell.get("effectiveFormat", {}) or {})
+                br = (fmt.get("borders", {}) or {})
+                row_borders.append({
+                    "left": (br.get("left", {}) or {}).get("style"),
+                    "right": (br.get("right", {}) or {}).get("style"),
+                    "top": (br.get("top", {}) or {}).get("style"),
+                    "bottom": (br.get("bottom", {}) or {}).get("style"),
+                })
+            borders.append(row_borders)
+
+    return borders

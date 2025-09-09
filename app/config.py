@@ -125,7 +125,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "Kanha Loka": {
         "boat_link": "https://lombok-indonesia.org/kanha-loka-komodo-tour/",
-        "sheet_link": "",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1Uy1sFrwgJyaNImp0_1-BwtUHPAYZdB14qHwxlE6ZXFM/edit",
         "rooms": {
             "Master": {"room_link": "https://lombok-indonesia.org/kanha-loka-komodo-tour/master/"},
             "Deluxe Cabin": {"room_link": "https://lombok-indonesia.org/kanha-loka-komodo-tour/deluxe/"},
@@ -136,7 +136,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "Kanha Natta": {
         "boat_link": "https://lombok-indonesia.org/kanha-natha-komodo-tour/",
-        "sheet_link": "",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1Uy1sFrwgJyaNImp0_1-BwtUHPAYZdB14qHwxlE6ZXFM/edit",
         "rooms": {
             "Master Room 1": {"room_link": "https://lombok-indonesia.org/kanha-natha-komodo-tour/master-1/"},
             "Master Room 2": {"room_link": "https://lombok-indonesia.org/kanha-natha-komodo-tour/master-2/"},
@@ -146,7 +146,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "Kanha Citta": {
         "boat_link": "https://lombok-indonesia.org/kanha-citta-komodo-tour/",
-        "sheet_link": "",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1Uy1sFrwgJyaNImp0_1-BwtUHPAYZdB14qHwxlE6ZXFM/edit",
         "rooms": {
             "Gayatri": {"room_link": "https://lombok-indonesia.org/kanha-citta-komodo-tour/gayatri/"},
             "Shakti": {"room_link": "https://lombok-indonesia.org/kanha-citta-komodo-tour/shakti/"},
