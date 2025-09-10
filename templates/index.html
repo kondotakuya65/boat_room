@@ -110,7 +110,6 @@
 			});
 			if(!res.ok){ alert('Failed to fetch availability'); return; }
 			const data = await res.json();
-			console.log(data);
 
 			for(const row of data){
 				const tr = document.createElement('tr');
