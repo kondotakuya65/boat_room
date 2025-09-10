@@ -79,8 +79,9 @@ def _find_first_header_row(rows: List[List[str]]) -> int | None:
     return None
 
 
-def _collect_month_spans(header_row_vals: List[str]) -> List[Dict]:
+def _collect_month_spans(header_row_vals: List[str], merged_ranges: List[Dict] = None) -> List[Dict]:
     """From a single header row, find each month header column and define its span until next header.
+    Uses merged cell information from Google Sheets API v4 to detect proper spans.
     Returns list of {month, start_col, end_col} sorted by start_col.
     """
     month_headers: List[Tuple[int, int]] = []  # (col_idx, month)
@@ -92,9 +93,29 @@ def _collect_month_spans(header_row_vals: List[str]) -> List[Dict]:
                 break
     month_headers.sort(key=lambda x: x[0])
     spans: List[Dict] = []
+    
     for idx, (col, mon) in enumerate(month_headers):
-        next_col = month_headers[idx + 1][0] if idx + 1 < len(month_headers) else len(header_row_vals)
-        spans.append({"month": mon, "start_col": col, "end_col": max(col, next_col - 1)})
+        # Default end column (next month header or end of row)
+        next_month_col = month_headers[idx + 1][0] if idx + 1 < len(month_headers) else len(header_row_vals)
+        end_col = next_month_col - 1
+        
+        # Check if this month header is part of a merged range
+        if merged_ranges:
+            for merge in merged_ranges:
+                merge_start_row = merge.get('startRowIndex', 0)
+                merge_end_row = merge.get('endRowIndex', 0)
+                merge_start_col = merge.get('startColumnIndex', 0)
+                merge_end_col = merge.get('endColumnIndex', 0)
+                
+                # Check if the month header column is within this merged range
+                if (merge_start_row <= 8 <= merge_end_row and  # Header row is typically row 8 (0-indexed)
+                    merge_start_col <= col < merge_end_col):
+                    # This month header is part of a merged range
+                    end_col = merge_end_col - 1
+                    break
+        
+        spans.append({"month": mon, "start_col": col, "end_col": end_col})
+    
     return spans
 
 
@@ -145,12 +166,30 @@ def parse_barakati_from_sheets(boat_name: str) -> List[Dict]:
         header_vals = rows[header_row_idx]
         range_vals = rows[range_row_idx] if range_row_idx < len(rows) else []
 
-        month_spans = _collect_month_spans(header_vals)
+        # Get merged cell information from Google Sheets API v4
+        merged_ranges = []
+        try:
+            result = service.spreadsheets().get(
+                spreadsheetId=sheet.id,
+                ranges=[f'{worksheet_title}!A1:ZZ1000'],
+                includeGridData=False
+            ).execute()
+            
+            if 'sheets' in result and len(result['sheets']) > 0:
+                sheet_data = result['sheets'][0]
+                if 'merges' in sheet_data:
+                    merged_ranges = sheet_data['merges']
+        except Exception as e:
+            # Fallback to heuristic method if API call fails
+            pass
+
+        month_spans = _collect_month_spans(header_vals, merged_ranges)
         if not month_spans:
             continue
+        
 
-        # Scan rows 11–25 in 3-row blocks; only start a block on known room label rows
-        start_row = max(range_row_idx + 1, 11)
+        # Scan rows 10–25 in 3-row blocks; only start a block on known room label rows
+        start_row = max(range_row_idx + 1, 10)
         end_row = min(len(rows), 26)
 
         i = start_row
