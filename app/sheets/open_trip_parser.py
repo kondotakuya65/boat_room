@@ -108,19 +108,18 @@ def _is_white(color: Dict[str, Optional[float]]) -> bool:
     return (r is None and g is None and b is None) or (r == 1 and g == 1 and b == 1)
 
 
-def parse_open_trip_from_sheets(boat_name: str, worksheet_title: str = "OPEN TRIP") -> List[Dict]:
-    """Parse OPEN TRIP data directly from Google Sheets"""
-    from .client import get_gspread_client, get_sheets_service
-    from .color_dump import get_worksheet_colors
+def parse_open_trip_from_sheets(boat_name: str, worksheet_title: str = "OPEN TRIP") -> Tuple[List[Dict], set]:
+    """Parse OPEN TRIP data directly from Google Sheets, returns (rooms, all_sheet_start_dates)"""
+    from app.config import BOAT_CATALOG
+    from app.sheets.client import get_gspread_client, get_sheets_service
+    from app.sheets.color_dump import get_worksheet_colors
     
-    # Get the sheet link from config
-    from ..config import BOAT_CATALOG
     if boat_name not in BOAT_CATALOG:
-        return []
+        return [], set()
     
     sheet_link = BOAT_CATALOG[boat_name]["sheet_link"]
     if not sheet_link:
-        return []
+        return [], set()
     
     try:
         # Get gspread client and open the sheet
@@ -135,11 +134,26 @@ def parse_open_trip_from_sheets(boat_name: str, worksheet_title: str = "OPEN TRI
         sheets_service = get_sheets_service()
         colors = get_worksheet_colors(sheets_service, sheet.id, worksheet_title)
         
-        return _parse_open_trip_data(rows, colors, boat_name)
+        # Parse room data
+        rooms = _parse_open_trip_data(rows, colors, boat_name)
+        
+        # Extract all sheet start dates from the same data
+        all_sheet_start_dates = set()
+        if len(rows) >= 29:
+            date_range_row = rows[28]  # Row 29: Date ranges
+            for c, cell_value in enumerate(date_range_row):
+                rng = _parse_date_range_cell(cell_value)
+                if rng:
+                    start_date, end_date = rng
+                    all_sheet_start_dates.add(start_date)
+        
+        return rooms, all_sheet_start_dates
         
     except Exception as e:
         print(f"Error parsing {boat_name} sheet: {e}")
-        return []
+        import traceback
+        traceback.print_exc()
+        return [], set()
 
 
 def _parse_open_trip_data(rows: List[List[str]], colors: List[List[Dict]], boat_name: str) -> List[Dict]:
@@ -222,6 +236,9 @@ def _parse_open_trip_data(rows: List[List[str]], colors: List[List[Dict]], boat_
     # Convert to results
     results: List[Dict] = []
     for room_name, occupied_set in per_room.items():
+        # Skip individual Bern sharing children from response; we'll add aggregated "Bern" below
+        if room_name.upper().startswith("BERN (SHARING"):
+            continue
         occupied = sorted(list(occupied_set))
         results.append({
             "boat_name": boat_name,
@@ -229,13 +246,42 @@ def _parse_open_trip_data(rows: List[List[str]], colors: List[List[Dict]], boat_
             "occupied": occupied,
         })
 
+    # Aggregated "Bern" logic:
+    # Bern (overall) should be available if ANY Bern (sharing) place is available,
+    # and disabled only when ALL Bern (sharing) places are booked for a given range.
+    # We model this by marking Bern's occupied ranges as those where all Bern-sharing
+    # children are occupied.
+    bern_children = [name for name in per_room.keys() if name.upper().startswith("BERN (SHARING)")]
+    if bern_children:
+        # Count occupancy across children for each (start,end) range
+        range_to_count: Dict[Tuple[str, str], int] = {}
+        for child in bern_children:
+            for rng in per_room.get(child, set()):
+                range_to_count[rng] = range_to_count.get(rng, 0) + 1
+        # A range is occupied for overall Bern only if ALL children are occupied in that range
+        all_children = len(bern_children)
+        bern_occupied = sorted([list(rng) for rng, cnt in range_to_count.items() if cnt >= all_children])
+        results.append({
+            "boat_name": boat_name,
+            "room_name": "Bern",
+            "occupied": bern_occupied,
+        })
+
     return results
 
 
 def parse_open_trip_from_files(boat_name: str, worksheet_title: str = "OPEN TRIP") -> List[Dict]:
     """Parse the OPEN TRIP worksheet from local files (for testing/fallback)"""
-    base_csv = os.path.join("data", "samples", boat_name, f"{worksheet_title}.csv")
-    base_json = os.path.join("data", "colors", boat_name, f"{worksheet_title}.json")
+    # Handle both running from root directory and app directory
+    if os.path.exists("data"):
+        # Running from root directory
+        base_csv = os.path.join("data", "samples", boat_name, f"{worksheet_title}.csv")
+        base_json = os.path.join("data", "colors", boat_name, f"{worksheet_title}.json")
+    else:
+        # Running from app directory
+        base_csv = os.path.join("..", "data", "samples", boat_name, f"{worksheet_title}.csv")
+        base_json = os.path.join("..", "data", "colors", boat_name, f"{worksheet_title}.json")
+    
     rows = _read_csv_rows(base_csv)
     colors = _read_colors(base_json)
     

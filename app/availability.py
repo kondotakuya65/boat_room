@@ -31,9 +31,11 @@ def find_available_start_dates(request_start: str, request_end: str, occupied_ra
     
     # Check which of these sheet start dates are available and within query range
     available_dates = []
+    filtered_out_dates = []
     for start_date in sorted(all_sheet_start_dates):
         # Only consider dates within the query range
         if start_date < request_start_date or start_date >= request_end_date:
+            filtered_out_dates.append(start_date)
             continue
             
         # Check if this start date is available (not occupied)
@@ -49,5 +51,7 @@ def find_available_start_dates(request_start: str, request_end: str, occupied_ra
         
         if is_available:
             available_dates.append(start_date.strftime("%Y/%m/%d"))
+    
+    print(f"[AVAILABILITY] Using {len(all_sheet_start_dates) - len(filtered_out_dates)}/{len(all_sheet_start_dates)} dates within range, found {len(available_dates)} available")
     
     return available_dates

@@ -1,4 +1,4 @@
-from typing import List, Dict, Callable
+from typing import List, Dict, Callable, Set
 from .client import get_gspread_client
 from .open_trip_parser import parse_open_trip_from_sheets
 from .sip1_parser import parse_sip1_from_sheets
@@ -13,10 +13,19 @@ from .sehat_parser import parse_sehat_from_sheets
 
 Parser = Callable[[], List[Dict]]
 
+# Global storage for sheet start dates from parsers that provide them
+_lamain_sheet_start_dates: Set = set()
+
 
 def parser_boat_1() -> List[Dict]:
     boat_name = "LaMain Voyages I"
-    return parse_open_trip_from_sheets(boat_name)
+    global _lamain_sheet_start_dates
+    print(f"[PARSER] Starting parser for {boat_name}")
+    rooms, sheet_dates = parse_open_trip_from_sheets(boat_name)
+    print(f"[PARSER] Got {len(rooms)} rooms and {len(sheet_dates)} sheet dates")
+    _lamain_sheet_start_dates = sheet_dates
+    print(f"[PARSER] Stored {len(_lamain_sheet_start_dates)} sheet dates globally")
+    return rooms
 
 
 def parser_boat_2() -> List[Dict]:
@@ -123,3 +132,9 @@ def get_rooms_with_occupied_ranges_for_boat(boat_name: str) -> List[Dict]:
     if not parser:
         return []
     return parser()
+
+
+def get_lamain_sheet_start_dates() -> Set:
+    """Get the sheet start dates for Lamain Voyages I (cached from last parser call)"""
+    print(f"[PARSER] Retrieved {len(_lamain_sheet_start_dates)} sheet dates from global storage")
+    return _lamain_sheet_start_dates
