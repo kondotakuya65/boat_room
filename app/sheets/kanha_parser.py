@@ -198,6 +198,9 @@ def _detect_ot_bands(rows: List[List[str]], borders: List[List[Dict]], date_row_
                         start = j
                         break
             j -= 1
+        # Fallback to column 0 if no start border found
+        if start is None:
+            start = 0
         
         # search for end: look for bold right border on current cell OR bold left border on next cell
         end = None
@@ -217,6 +220,9 @@ def _detect_ot_bands(rows: List[List[str]], borders: List[List[Dict]], date_row_
                         end = j
                         break
             j += 1
+        # Fallback to last column if no end border found
+        if end is None:
+            end = len(rows[border_row_idx]) - 1
         
         if start is not None and end is not None and end >= start:
             bands.append((start, end))
