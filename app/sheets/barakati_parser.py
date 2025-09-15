@@ -48,8 +48,12 @@ def _download_excel_file(sheet_link: str) -> str:
     # Download as Excel format
     download_url = f"https://docs.google.com/spreadsheets/d/{file_id}/export?format=xlsx"
     
-    # Create temporary file
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx')
+    # Create project-specific temp directory if it doesn't exist
+    temp_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'temp')
+    os.makedirs(temp_dir, exist_ok=True)
+    
+    # Create temporary file in project temp directory
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx', dir=temp_dir)
     temp_path = temp_file.name
     temp_file.close()
     

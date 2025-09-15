@@ -9,3 +9,6 @@ __pycache__
 .coverage
 .pytest_cache
 .env
+
+# Project-specific temp directory
+temp/
