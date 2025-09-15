@@ -118,20 +118,25 @@ async def availability(
         if room.get("available_dates") is not None:
             available_dates = room.get("available_dates", [])
             
-            # Filter by query range
+            # Filter by query range and minimum duration
             from datetime import datetime
             request_start_date = datetime.strptime(start, "%Y/%m/%d").date()
             request_end_date = datetime.strptime(end, "%Y/%m/%d").date()
             
             for available_date in available_dates:
                 if request_start_date <= available_date <= request_end_date:
-                    results.append(AvailabilityResult(
-                        start=available_date.strftime("%Y/%m/%d"),
-                        boat_name=boat_name,
-                        boat_link=get_boat_link(boat_name),
-                        room_name=room_name,
-                        room_link=room.get("room_link") or get_room_link(boat_name, room_name)
-                    ))
+                    # Calculate trip duration for this boat
+                    trip_duration = _calculate_trip_duration_for_available_dates(available_date, available_dates, request_end_date)
+                    
+                    # Only include trips that are 2+ days
+                    if trip_duration > 2:
+                        results.append(AvailabilityResult(
+                            start=available_date.strftime("%Y/%m/%d"),
+                            boat_name=boat_name,
+                            boat_link=get_boat_link(boat_name),
+                            room_name=room_name,
+                            room_link=room.get("room_link") or get_room_link(boat_name, room_name)
+                        ))
         else:
             # Standard logic for other boats
             print(f"[ROUTES] Processing room: {room_name} (boat: {boat_name})")
@@ -166,3 +171,23 @@ async def availability_post(body: AvailabilityRequest):
     result = await availability(start=body.start, end=body.end, boat=body.boat)
     print(f"[API] Returning {len(result)} results")
     return result
+
+
+def _calculate_trip_duration_for_available_dates(start_date, available_dates: List, request_end_date) -> int:
+    """Calculate trip duration in days from start_date to next available start date"""
+    from datetime import date
+    
+    # Find the next available date after this one
+    next_start_date = None
+    for other_date in sorted(available_dates):
+        if other_date > start_date:
+            next_start_date = other_date
+            break
+    
+    # If no next start date found, use request_end_date
+    if next_start_date is None:
+        next_start_date = request_end_date
+    
+    # Calculate duration
+    duration = (next_start_date - start_date).days
+    return duration

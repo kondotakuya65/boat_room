@@ -32,6 +32,8 @@ def find_available_start_dates(request_start: str, request_end: str, occupied_ra
     # Check which of these sheet start dates are available and within query range
     available_dates = []
     filtered_out_dates = []
+    duration_filtered = []
+    
     for start_date in sorted(all_sheet_start_dates):
         # Only consider dates within the query range
         if start_date < request_start_date or start_date >= request_end_date:
@@ -50,8 +52,35 @@ def find_available_start_dates(request_start: str, request_end: str, occupied_ra
                 break
         
         if is_available:
-            available_dates.append(start_date.strftime("%Y/%m/%d"))
+            # Calculate trip duration: find the next available start date or use request_end_date
+            trip_duration = _calculate_trip_duration(start_date, all_sheet_start_dates, request_end_date)
+            
+            # Only include trips that are 2+ days
+            if trip_duration >= 2:
+                available_dates.append(start_date.strftime("%Y/%m/%d"))
+            else:
+                duration_filtered.append(start_date)
     
-    print(f"[AVAILABILITY] Using {len(all_sheet_start_dates) - len(filtered_out_dates)}/{len(all_sheet_start_dates)} dates within range, found {len(available_dates)} available")
+    print(f"[AVAILABILITY] Using {len(all_sheet_start_dates) - len(filtered_out_dates)}/{len(all_sheet_start_dates)} dates within range, found {len(available_dates)} available, filtered {len(duration_filtered)} by duration")
     
     return available_dates
+
+
+def _calculate_trip_duration(start_date, all_sheet_start_dates: set, request_end_date) -> int:
+    """Calculate trip duration in days from start_date to next available start date"""
+    from datetime import timedelta
+    
+    # Find the next start date after this one
+    next_start_date = None
+    for other_date in sorted(all_sheet_start_dates):
+        if other_date > start_date:
+            next_start_date = other_date
+            break
+    
+    # If no next start date found, use request_end_date
+    if next_start_date is None:
+        next_start_date = request_end_date
+    
+    # Calculate duration
+    duration = (next_start_date - start_date).days
+    return duration
