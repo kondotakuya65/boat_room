@@ -1,4 +1,6 @@
 from typing import List, Dict, Callable, Set
+import concurrent.futures
+import time
 from .client import get_gspread_client
 from .open_trip_parser import parse_open_trip_from_sheets
 from .sip1_parser import parse_sip1_from_sheets
@@ -99,10 +101,44 @@ _PARSERS: List[Parser] = [
 ]
 
 
+# Simple in-memory caches with timestamps
+_CACHE_ALL_ROOMS: Dict[str, object] = {"ts": 0.0, "data": []}
+_CACHE_PER_BOAT: Dict[str, Dict[str, object]] = {}
+
+
 def get_all_rooms_with_occupied_ranges() -> List[Dict]:
+    # Cache results for a short TTL to reduce API calls and avoid rate limits
+    ttl_seconds = 60
+    now = time.time()
+    if _CACHE_ALL_ROOMS["ts"] and (now - _CACHE_ALL_ROOMS["ts"]) < ttl_seconds:
+        print("[PARSER] Returning cached all-rooms result")
+        return _CACHE_ALL_ROOMS["data"]
+
     rooms: List[Dict] = []
-    for parser in _PARSERS:
-        rooms.extend(parser())
+    # Run parsers concurrently with limited parallelism and per-parser timeout
+    per_parser_timeout_seconds = 25
+    max_workers = min(4, len(_PARSERS))
+    print(f"[PARSER] Running {len(_PARSERS)} parsers concurrently (max_workers={max_workers}) with {per_parser_timeout_seconds}s timeout each")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = []
+        for idx, parser in enumerate(_PARSERS):
+            # Small stagger between submissions to smooth burstiness
+            if idx > 0:
+                time.sleep(0.15)
+            futures.append((executor.submit(parser), parser))
+        for future, parser_fn in futures:
+            parser_name = getattr(parser_fn, "__name__", "unknown_parser")
+            try:
+                result = future.result(timeout=per_parser_timeout_seconds)
+                rooms.extend(result or [])
+                print(f"[PARSER] {parser_name} completed: +{len(result or [])} rooms")
+            except concurrent.futures.TimeoutError:
+                print(f"[PARSER] {parser_name} timed out after {per_parser_timeout_seconds}s; skipping")
+            except Exception as e:
+                print(f"[PARSER] {parser_name} failed: {e}")
+    print(f"[PARSER] Aggregated total rooms: {len(rooms)}")
+    _CACHE_ALL_ROOMS["ts"] = now
+    _CACHE_ALL_ROOMS["data"] = rooms
     return rooms
 
 
@@ -131,7 +167,32 @@ def get_rooms_with_occupied_ranges_for_boat(boat_name: str) -> List[Dict]:
     parser = _BOAT_TO_PARSER.get(boat_name)
     if not parser:
         return []
-    return parser()
+    # Cache per-boat for a short TTL to reduce API calls
+    ttl_seconds = 60
+    now = time.time()
+    cache_entry = _CACHE_PER_BOAT.get(boat_name)
+    if cache_entry and (now - cache_entry["ts"]) < ttl_seconds:
+        print(f"[PARSER] Returning cached result for boat {boat_name}")
+        return cache_entry["data"]
+
+    # Run the single parser with a timeout to avoid hanging requests
+    per_parser_timeout_seconds = 25
+    parser_name = getattr(parser, "__name__", boat_name)
+    print(f"[PARSER] Running single parser {parser_name} with {per_parser_timeout_seconds}s timeout")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(parser)
+        try:
+            result = future.result(timeout=per_parser_timeout_seconds)
+            print(f"[PARSER] {parser_name} completed: {len(result or [])} rooms")
+            data = result or []
+            _CACHE_PER_BOAT[boat_name] = {"ts": now, "data": data}
+            return data
+        except concurrent.futures.TimeoutError:
+            print(f"[PARSER] {parser_name} timed out after {per_parser_timeout_seconds}s; returning empty list")
+            return []
+        except Exception as e:
+            print(f"[PARSER] {parser_name} failed: {e}; returning empty list")
+            return []
 
 
 def get_lamain_sheet_start_dates() -> Set:

@@ -327,22 +327,27 @@ def _get_room_link_from_sheet(worksheet, row_idx: int, col_idx: int) -> str | No
         return None
 
 
-def _map_sheet_room_to_config_room(sheet_room_name: str) -> str | None:
-    """Map sheet room name to config room name for Kanha Loka"""
+def _map_sheet_room_to_config_room(sheet_room_name: str, boat_name: str) -> str | None:
+    """Map sheet room name to config room name based on boat"""
     # Normalize the sheet room name for matching
     normalized = sheet_room_name.strip().upper()
     
-    # Mapping based on keywords in the room names
-    if "SHARE" in normalized and "8 PAX" in normalized:
-        return "Regular Sharing Cabin"
-    elif "SUPERIOR" in normalized:
-        return "Superior Cabin"
-    elif "DELUXE" in normalized and "OCEAN VIEW" in normalized:
-        return "Deluxe Cabin"
-    elif "FAMILY" in normalized and "OCEAN VIEW" in normalized:
-        return "Family Sharin Cabin"
-    elif "MASTER" in normalized and "OCEAN VIEW" in normalized:
-        return "Master"
+    if boat_name == "Kanha Natta":
+        # For Kanha Natta, map based on order: [Sharing Room1, Sharing Room2, Master Room1, Master Room2]
+        # This mapping will be handled by position in the room processing logic
+        return None
+    elif boat_name == "Kanha Loka":
+        # Mapping based on keywords in the room names for Kanha Loka
+        if "SHARE" in normalized and "8 PAX" in normalized:
+            return "Regular Sharing Cabin"
+        elif "SUPERIOR" in normalized:
+            return "Superior Cabin"
+        elif "DELUXE" in normalized and "OCEAN VIEW" in normalized:
+            return "Deluxe Cabin"
+        elif "FAMILY" in normalized and "OCEAN VIEW" in normalized:
+            return "Family Sharin Cabin"
+        elif "MASTER" in normalized and "OCEAN VIEW" in normalized:
+            return "Master"
     
     return None
 
@@ -444,60 +449,113 @@ def parse_kanha_from_sheets(boat_name: str) -> List[Dict]:
             current_cabin = None
             current_room = None
     
-    # Process each room group (by room label and cabin number)
-    for (room_label, cabin_no), room_rows in room_groups.items():
-        available_dates: List[date] = []
+    # For Kanha Natta, we need to map the 4 room cells to config room names by position
+    if boat_name == "Kanha Natta":
+        # Get the 4 room cells from the sheet in order
+        room_cells = []
+        for (room_label, cabin_no), room_rows in room_groups.items():
+            if cabin_no <= 4:  # Only take the first 4 cabins
+                room_cells.append((room_label, cabin_no, room_rows))
         
-        # For each OT band, check availability at the start column
-        for start_col, end_col in otinfo["bands"]:
-            # Get date for this column using the standard date row
-            iso_date = _col_to_date(rows, day_idx, month_spans, start_col, current_year)
-            if iso_date is None:
-                # fallback: search near the date row for day numbers
-                iso_date = _col_to_date_fallback(rows, month_spans, start_col, current_year, day_idx - 3, day_idx + 3)
+        # Sort by cabin number to ensure correct order
+        room_cells.sort(key=lambda x: x[1])
+        
+        # Map to config room names in order: [Sharing Room 1, Sharing Room 2, Master Room 1, Master Room 2]
+        config_room_names = ["Sharing Room 1", "Sharing Room 2", "Master Room 1", "Master Room 2"]
+        
+        for i, (room_label, cabin_no, room_rows) in enumerate(room_cells):
+            if i >= len(config_room_names):
+                break
+                
+            config_room_name = config_room_names[i]
+            available_dates: List[date] = []
             
-            if iso_date is None:
-                continue
-            
-            # Check if room is available: ANY row in this room group is white at this column
-            is_available = False
-            scanned_cells = []
-            for r in room_rows:
-                if (r < len(colors) and start_col < len(colors[r])):
-                    cell_color = colors[r][start_col]
-                    is_white = _is_white(cell_color)
-                    scanned_cells.append({
-                        "row": r,
-                        "col": start_col,
-                        "is_white": is_white,
-                        "color": cell_color
-                    })
-                    if is_white:
-                        is_available = True
-                        break
-            
-            
-            if is_available:
-                try:
-                    parsed_date = datetime.fromisoformat(iso_date).date()
-                    available_dates.append(parsed_date)
-                except ValueError:
-                    pass
+            # For each OT band, check availability at the start column
+            for start_col, end_col in otinfo["bands"]:
+                # Get date for this column using the standard date row
+                iso_date = _col_to_date(rows, day_idx, month_spans, start_col, current_year)
+                if iso_date is None:
+                    # fallback: search near the date row for day numbers
+                    iso_date = _col_to_date_fallback(rows, month_spans, start_col, current_year, day_idx - 3, day_idx + 3)
+                
+                if iso_date is None:
+                    continue
+                
+                # Check if room is available: ANY row in this room group is white at this column
+                is_available = False
+                for r in room_rows:
+                    if (r < len(colors) and start_col < len(colors[r])):
+                        cell_color = colors[r][start_col]
+                        is_white = _is_white(cell_color)
+                        if is_white:
+                            is_available = True
+                            break
+                
+                if is_available:
+                    try:
+                        parsed_date = datetime.fromisoformat(iso_date).date()
+                        available_dates.append(parsed_date)
+                    except ValueError:
+                        pass
 
-        # Get room link: first try to extract from sheet hyperlink, then fallback to config
-        room_link = _get_room_link_from_sheet(ws, room_rows[0], 1)  # Check column 2 (0-indexed as 1)
-        if not room_link:
-            # Try to map sheet room name to config room name
-            config_room_name = _map_sheet_room_to_config_room(room_label)
+            # Use config room link instead of extracting from sheet
             room_link = get_room_link(boat_name, config_room_name)
-        
-        results.append({
-            "boat_name": boat_name,
-            "room_name": room_label,
-            "cabin_no": cabin_no,
-            "occupied": [],
-            "available_dates": available_dates,
-            "room_link": room_link,
-        })
+            
+            results.append({
+                "boat_name": boat_name,
+                "room_name": config_room_name,
+                "cabin_no": cabin_no,
+                "occupied": [],
+                "available_dates": available_dates,
+                "room_link": room_link,
+            })
+    else:
+        # Process each room group (by room label and cabin number) for other boats
+        for (room_label, cabin_no), room_rows in room_groups.items():
+            available_dates: List[date] = []
+            
+            # For each OT band, check availability at the start column
+            for start_col, end_col in otinfo["bands"]:
+                # Get date for this column using the standard date row
+                iso_date = _col_to_date(rows, day_idx, month_spans, start_col, current_year)
+                if iso_date is None:
+                    # fallback: search near the date row for day numbers
+                    iso_date = _col_to_date_fallback(rows, month_spans, start_col, current_year, day_idx - 3, day_idx + 3)
+                
+                if iso_date is None:
+                    continue
+                
+                # Check if room is available: ANY row in this room group is white at this column
+                is_available = False
+                for r in room_rows:
+                    if (r < len(colors) and start_col < len(colors[r])):
+                        cell_color = colors[r][start_col]
+                        is_white = _is_white(cell_color)
+                        if is_white:
+                            is_available = True
+                            break
+                
+                if is_available:
+                    try:
+                        parsed_date = datetime.fromisoformat(iso_date).date()
+                        available_dates.append(parsed_date)
+                    except ValueError:
+                        pass
+
+            # Get room link: first try to extract from sheet hyperlink, then fallback to config
+            room_link = _get_room_link_from_sheet(ws, room_rows[0], 1)  # Check column 2 (0-indexed as 1)
+            if not room_link:
+                # Try to map sheet room name to config room name
+                config_room_name = _map_sheet_room_to_config_room(room_label, boat_name)
+                room_link = get_room_link(boat_name, config_room_name)
+            
+            results.append({
+                "boat_name": boat_name,
+                "room_name": room_label,
+                "cabin_no": cabin_no,
+                "occupied": [],
+                "available_dates": available_dates,
+                "room_link": room_link,
+            })
 
     return results

@@ -1,6 +1,8 @@
 import os
 import json
+import time
 from typing import Dict, Any
+from googleapiclient.errors import HttpError
 
 from .client import get_gspread_client, get_sheets_service
 from .sampler import extract_spreadsheet_id
@@ -11,7 +13,7 @@ def dump_worksheet_colors(sheet_link: str, worksheet_title: str, boat_name: str)
     spreadsheet_id = extract_spreadsheet_id(sheet_link)
 
     # Find the sheetId for the given title
-    meta = service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+    meta = _sheets_get_with_retries(service, spreadsheet_id)
     target_sheet_id = None
     for s in meta.get("sheets", []):
         props = s.get("properties", {})
@@ -22,11 +24,7 @@ def dump_worksheet_colors(sheet_link: str, worksheet_title: str, boat_name: str)
         raise ValueError("Worksheet not found")
 
     rng = f"{worksheet_title}!A1:ZZ999"
-    grid = service.spreadsheets().get(
-        spreadsheetId=spreadsheet_id,
-        ranges=[rng],
-        includeGridData=True
-    ).execute()
+    grid = _sheets_get_with_retries(service, spreadsheet_id, ranges=[rng], includeGridData=True)
 
     grid_data = grid["sheets"][0].get("data", [])
     colors = []
@@ -53,7 +51,7 @@ def dump_worksheet_colors(sheet_link: str, worksheet_title: str, boat_name: str)
 def get_worksheet_colors(service, spreadsheet_id: str, worksheet_title: str) -> list:
     """Get worksheet colors directly without saving to file"""
     # Find the sheetId for the given title
-    meta = service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+    meta = _sheets_get_with_retries(service, spreadsheet_id)
     target_sheet_id = None
     for s in meta.get("sheets", []):
         props = s.get("properties", {})
@@ -64,11 +62,7 @@ def get_worksheet_colors(service, spreadsheet_id: str, worksheet_title: str) -> 
         raise ValueError("Worksheet not found")
 
     rng = f"{worksheet_title}!A1:ZZ999"
-    grid = service.spreadsheets().get(
-        spreadsheetId=spreadsheet_id,
-        ranges=[rng],
-        includeGridData=True
-    ).execute()
+    grid = _sheets_get_with_retries(service, spreadsheet_id, ranges=[rng], includeGridData=True)
 
     grid_data = grid["sheets"][0].get("data", [])
     colors = []
@@ -94,7 +88,7 @@ def get_worksheet_borders(service, spreadsheet_id: str, worksheet_title: str) ->
     Styles are Google enum strings like "SOLID", "SOLID_MEDIUM", "SOLID_THICK", "DASHED", "DOUBLE", etc.
     """
     # Find the sheetId for the given title
-    meta = service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+    meta = _sheets_get_with_retries(service, spreadsheet_id)
     target_sheet_id = None
     for s in meta.get("sheets", []):
         props = s.get("properties", {})
@@ -105,11 +99,7 @@ def get_worksheet_borders(service, spreadsheet_id: str, worksheet_title: str) ->
         raise ValueError("Worksheet not found")
 
     rng = f"{worksheet_title}!A1:ZZ999"
-    grid = service.spreadsheets().get(
-        spreadsheetId=spreadsheet_id,
-        ranges=[rng],
-        includeGridData=True
-    ).execute()
+    grid = _sheets_get_with_retries(service, spreadsheet_id, ranges=[rng], includeGridData=True)
 
     grid_data = grid["sheets"][0].get("data", [])
     borders = []
@@ -128,3 +118,24 @@ def get_worksheet_borders(service, spreadsheet_id: str, worksheet_title: str) ->
             borders.append(row_borders)
 
     return borders
+
+
+def _sheets_get_with_retries(service, spreadsheet_id: str, **kwargs):
+    """Execute sheets.spreadsheets().get with retries/backoff for 429 RATE_LIMIT_EXCEEDED."""
+    max_attempts = 5
+    base_delay = 0.6
+    attempt = 0
+    while True:
+        try:
+            req = service.spreadsheets().get(spreadsheetId=spreadsheet_id, **kwargs)
+            return req.execute()
+        except HttpError as e:
+            status = getattr(e, 'resp', None).status if getattr(e, 'resp', None) else None
+            text = str(e)
+            is_rate = (status == 429) or ("RATE_LIMIT_EXCEEDED" in text) or ("quota" in text.lower())
+            if is_rate and attempt < max_attempts - 1:
+                delay = base_delay * (2 ** attempt)
+                time.sleep(delay)
+                attempt += 1
+                continue
+            raise
