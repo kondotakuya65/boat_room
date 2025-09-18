@@ -336,6 +336,19 @@ def _map_sheet_room_to_config_room(sheet_room_name: str, boat_name: str) -> str 
         # For Kanha Natta, map based on order: [Sharing Room1, Sharing Room2, Master Room1, Master Room2]
         # This mapping will be handled by position in the room processing logic
         return None
+    elif boat_name == "Kanha Citta":
+        print(f"[PARSER] Mapping {normalized} to config room name for {boat_name}")
+        # Map by head of room name
+        if "SHARE" in normalized:
+            return "Sharing Room"
+        if "DELUXE" in normalized:
+            return "Deluxe Room"
+        if "SHAKTI" in normalized:
+            return "Shakti"
+        if "SEDANA" in normalized:
+            return "Sedana"
+        if "GAYATRI" in normalized:
+            return "Gayatri"
     elif boat_name == "Kanha Loka":
         # Mapping based on keywords in the room names for Kanha Loka
         if "SHARE" in normalized and "8 PAX" in normalized:
@@ -542,20 +555,33 @@ def parse_kanha_from_sheets(boat_name: str) -> List[Dict]:
                     except ValueError:
                         pass
 
-            # Get room link: first try to extract from sheet hyperlink, then fallback to config
-            room_link = _get_room_link_from_sheet(ws, room_rows[0], 1)  # Check column 2 (0-indexed as 1)
-            if not room_link:
-                # Try to map sheet room name to config room name
-                config_room_name = _map_sheet_room_to_config_room(room_label, boat_name)
+            # For Kanha Citta, always map by config and use config link
+            if boat_name == "Kanha Citta":
+                config_room_name = _map_sheet_room_to_config_room(room_label, boat_name) or room_label
                 room_link = get_room_link(boat_name, config_room_name)
-            
-            results.append({
-                "boat_name": boat_name,
-                "room_name": room_label,
-                "cabin_no": cabin_no,
-                "occupied": [],
-                "available_dates": available_dates,
-                "room_link": room_link,
-            })
+                results.append({
+                    "boat_name": boat_name,
+                    "room_name": room_label,
+                    "cabin_no": cabin_no,
+                    "occupied": [],
+                    "available_dates": available_dates,
+                    "room_link": room_link,
+                })
+            else:
+                # Get room link: first try to extract from sheet hyperlink, then fallback to config
+                room_link = _get_room_link_from_sheet(ws, room_rows[0], 1)  # Check column 2 (0-indexed as 1)
+                if not room_link:
+                    # Try to map sheet room name to config room name
+                    config_room_name = _map_sheet_room_to_config_room(room_label, boat_name)
+                    room_link = get_room_link(boat_name, config_room_name)
+                
+                results.append({
+                    "boat_name": boat_name,
+                    "room_name": room_label,
+                    "cabin_no": cabin_no,
+                    "occupied": [],
+                    "available_dates": available_dates,
+                    "room_link": room_link,
+                })
 
     return results

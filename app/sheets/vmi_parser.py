@@ -112,13 +112,37 @@ def _parse_calendar(rows: List[List[str]], colors: List[List[dict]], boat_name: 
                                     available_dates.append(parsed)
 
     if available_dates:
-        results.append({
-            "boat_name": boat_name,
-            "room_name": "All Rooms",
-            "occupied": [],
-            "room_link": None,
-            "available_dates": available_dates,
-        })
+        # Expand to all rooms defined in config for this boat
+        try:
+            from ..config import BOAT_CATALOG, get_room_link
+            room_names = list((BOAT_CATALOG.get(boat_name, {}).get("rooms") or {}).keys())
+            if room_names:
+                for rn in room_names:
+                    results.append({
+                        "boat_name": boat_name,
+                        "room_name": rn,
+                        "occupied": [],
+                        "room_link": get_room_link(boat_name, rn),
+                        "available_dates": available_dates,
+                    })
+            else:
+                # Fallback to a generic entry if rooms are not configured
+                results.append({
+                    "boat_name": boat_name,
+                    "room_name": "All Rooms",
+                    "occupied": [],
+                    "room_link": None,
+                    "available_dates": available_dates,
+                })
+        except Exception:
+            # On any error, keep previous behavior
+            results.append({
+                "boat_name": boat_name,
+                "room_name": "All Rooms",
+                "occupied": [],
+                "room_link": None,
+                "available_dates": available_dates,
+            })
 
     return results
 
