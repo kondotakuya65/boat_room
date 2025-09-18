@@ -18,7 +18,7 @@ from typing import Dict
 BOAT_CATALOG: Dict[str, dict] = {
     "LaMain Voyages I": {
         "boat_link": "https://lombok-indonesia.org/lamain-voyages-komodo-tour/",
-        "sheet_link": "https://docs.google.com/spreadsheets/d/1uA-pIPD-t5_f8IgUfB8pQ542EOVMs1U1o6Ad7lgXdm8/edit",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1B51HvqaIW7g1I__qbcfM77lvnio_kfgl05TwmnXTIhI/edit?gid=227593602#gid=227593602",
         "rooms": {
             "Paris": {"room_link": "https://lombok-indonesia.org/lamain-voyages-komodo-tour/paris/"},
             "Osaka": {"room_link": "https://lombok-indonesia.org/lamain-voyages-komodo-tour/osaka/"},
@@ -34,7 +34,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "SIP 1": {
         "boat_link": "https://lombok-indonesia.org/sip-komodo-tour/",
-        "sheet_link": "https://docs.google.com/spreadsheets/d/1_x5xSDoWTH0IeJjDq-FnS4uDNyGtZLecPBwdM7XYhd8/edit",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1T0FSrxRkf37swepnz3G4_1wqRksDKBnCKjL7fqFkbkY/edit",
         "rooms": {
             "Master Ocean 1": {"room_link": "https://lombok-indonesia.org/sip-komodo-tour/cabin-1/"},
             "Private Cabin 2": {"room_link": "https://lombok-indonesia.org/sip-komodo-tour/cabin-2/"},
@@ -45,7 +45,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "KLM Arfisyana": {
         "boat_link": "https://lombok-indonesia.org/arfisyana-indah-komodo-tour/",
-        "sheet_link": "https://docs.google.com/spreadsheets/d/1il_tM-u_QWekZCFyVmXx-ZjysHCfHum3DKxtJFp6RRs/edit",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1d6w3Ywyjw7mIwG0BWwzNwPpnMWWSpZ_wU0Rv-l-YYYs/edit?gid=1172847477#gid=1172847477",
         "rooms": {
             "Master Room 01": {"room_link": "https://lombok-indonesia.org/arfisyana-indah-komodo-tour/master-cabin-1/"},
             "Master Room 02": {"room_link": "https://lombok-indonesia.org/arfisyana-indah-komodo-tour/master-cabin-2/"},
@@ -56,7 +56,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "VMI Vinca": {
         "boat_link": "https://lombok-indonesia.org/vinca-voyages-komodo-tour/",
-        "sheet_link": "https://docs.google.com/spreadsheets/d/1x74uSMhh7D71orfDQ2a11CJ-mtOlNREWOFkjBp-vOvk/edit",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1ivz0L5kIpJsejfEln0fLeDu6Tn4cpKHieDWA2Yy2O4A/edit?gid=1277604030#gid=1277604030",
         "rooms": {
             "Japanese 1": {"room_link": "https://lombok-indonesia.org/vinca-voyages-komodo-tour/japanese-1/"},
             "Japanese 2": {"room_link": "https://lombok-indonesia.org/vinca-voyages-komodo-tour/japanese-2/"},
@@ -68,7 +68,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "VMI Raffles": {
         "boat_link": "https://lombok-indonesia.org/raffles-cruise-komodo-tour/",
-        "sheet_link": "https://docs.google.com/spreadsheets/d/1x74uSMhh7D71orfDQ2a11CJ-mtOlNREWOFkjBp-vOvk/edit",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1ivz0L5kIpJsejfEln0fLeDu6Tn4cpKHieDWA2Yy2O4A/edit?gid=1277604030#gid=1277604030",
         "rooms": {
             "Malacca I": {"room_link": "https://lombok-indonesia.org/raffles-cruise-komodo-tour/malacca-i/"},
             "Malacca II": {"room_link": "https://lombok-indonesia.org/raffles-cruise-komodo-tour/malacca-ii/"},
@@ -89,7 +89,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "El Rora": {
         "boat_link": "https://lombok-indonesia.org/elrora-komodo-tour/",
-        "sheet_link": "https://docs.google.com/spreadsheets/d/1fok_jTsi6FAdyxckjQimUmFIHE6r94PFU7_Y8bU68VE/edit",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1p-45aNbkDB9J2Yc-tRMxjiJk1Dp2Gl-u-ggNvyE93Xw/edit?gid=0#gid=0",
         "rooms": {
             "Love": {"room_link": "https://lombok-indonesia.org/elrora-komodo-tour/love/"},
             "Kindness": {"room_link": "https://lombok-indonesia.org/elrora-komodo-tour/kindness/"},
@@ -101,7 +101,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "Sehat Elona from Lombok": {
         "boat_link": "https://lombok-indonesia.org/sehat-alona-labuan-bajo-lombok-komodo-tour",
-        "sheet_link": "https://docs.google.com/spreadsheets/d/1DxilZpcPYGeLcJ-W30VbqmxBwNoQzsF3oOwXX1iM_QU/edit",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1UBavKM8zI3jF0IzLvcR4VF9PdcgUA_ncLFAE0V0kIc4/edit?gid=0#gid=0",
         "rooms": {
             "Luxury Cabin": {"room_link": "https://lombok-indonesia.org/sehat-alona-lombok-labuan-bajo-komodo-tour/luxury-cabin"},
             "Grand Deluxe": {"room_link": "https://lombok-indonesia.org/sehat-alona-lombok-labuan-bajo-komodo-tour/grand-deluxe"},
@@ -113,7 +113,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "Sehat Elona from Labuan Bajo": {
         "boat_link": "https://lombok-indonesia.org/sehat-alona-lombok-labuan-bajo-komodo-tour",
-        "sheet_link": "https://docs.google.com/spreadsheets/d/1DxilZpcPYGeLcJ-W30VbqmxBwNoQzsF3oOwXX1iM_QU/edit",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1UBavKM8zI3jF0IzLvcR4VF9PdcgUA_ncLFAE0V0kIc4/edit?gid=784843298#gid=784843298",
         "rooms": {
             "Luxury Cabin": {"room_link": "https://lombok-indonesia.org/sehat-alona-lombok-labuan-bajo-komodo-tour/luxury-cabin"},
             "Grand Deluxe": {"room_link": "https://lombok-indonesia.org/sehat-alona-lombok-labuan-bajo-komodo-tour/grand-deluxe"},
@@ -125,7 +125,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "Kanha Loka": {
         "boat_link": "https://lombok-indonesia.org/kanha-loka-komodo-tour/",
-        "sheet_link": "https://docs.google.com/spreadsheets/d/1Uy1sFrwgJyaNImp0_1-BwtUHPAYZdB14qHwxlE6ZXFM/edit",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1IdDDGaVjmNG1XOdQEb3tm-g4d9hBgTiydm8TDOSuNQA/edit?gid=545984384#gid=545984384",
         "rooms": {
             "Master": {"room_link": "https://lombok-indonesia.org/kanha-loka-komodo-tour/master/"},
             "Deluxe Cabin": {"room_link": "https://lombok-indonesia.org/kanha-loka-komodo-tour/deluxe/"},
@@ -136,7 +136,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "Kanha Natta": {
         "boat_link": "https://lombok-indonesia.org/kanha-natha-komodo-tour/",
-        "sheet_link": "https://docs.google.com/spreadsheets/d/1Uy1sFrwgJyaNImp0_1-BwtUHPAYZdB14qHwxlE6ZXFM/edit",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1IdDDGaVjmNG1XOdQEb3tm-g4d9hBgTiydm8TDOSuNQA/edit?gid=545984384#gid=545984384",
         "rooms": {
             "Master Room 1": {"room_link": "https://lombok-indonesia.org/kanha-natha-komodo-tour/master-1/"},
             "Master Room 2": {"room_link": "https://lombok-indonesia.org/kanha-natha-komodo-tour/master-2/"},
@@ -146,7 +146,7 @@ BOAT_CATALOG: Dict[str, dict] = {
     },
     "Kanha Citta": {
         "boat_link": "https://lombok-indonesia.org/kanha-citta-komodo-tour/",
-        "sheet_link": "https://docs.google.com/spreadsheets/d/1Uy1sFrwgJyaNImp0_1-BwtUHPAYZdB14qHwxlE6ZXFM/edit",
+        "sheet_link": "https://docs.google.com/spreadsheets/d/1IdDDGaVjmNG1XOdQEb3tm-g4d9hBgTiydm8TDOSuNQA/edit?gid=545984384#gid=545984384",
         "rooms": {
             "Gayatri": {"room_link": "https://lombok-indonesia.org/kanha-citta-komodo-tour/gayatri/"},
             "Shakti": {"room_link": "https://lombok-indonesia.org/kanha-citta-komodo-tour/shakti/"},
