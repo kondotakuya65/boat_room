@@ -103,12 +103,12 @@ BOAT_CATALOG: Dict[str, dict] = {
         "boat_link": "https://lombok-indonesia.org/sehat-alona-labuan-bajo-lombok-komodo-tour",
         "sheet_link": "https://docs.google.com/spreadsheets/d/1DxilZpcPYGeLcJ-W30VbqmxBwNoQzsF3oOwXX1iM_QU/edit",
         "rooms": {
-            "Luxury Cabin": {"room_link": "https://lombok-indonesia.org/uk/sehat-alona-labuan-bajo-lombok-komodo-tour/luxury-cabin/"},
-            "Grand Deluxe": {"room_link": "https://lombok-indonesia.org/sehat-alona-lombok-labuan-bajo-komodo-tour/grand-deluxe/"},
-            "Deluxe Twin": {"room_link": "https://lombok-indonesia.org/sehat-alona-lombok-labuan-bajo-komodo-tour/deluxe-twin/"},
-            "Deluxe Triple": {"room_link": "https://lombok-indonesia.org/uk/sehat-alona-lombok-labuan-bajo-komodo-tour/sharing-deluxe-triple/"},
-            "Regular Cabin 1": {"room_link": "https://lombok-indonesia.org/tr/sehat-alona-lombok-labuan-bajo-komodo-tour/sharing-regular-cabin-1/"},
-            "Regular Cabin 2": {"room_link": "https://lombok-indonesia.org/uk/sehat-alona-lombok-labuan-bajo-komodo-tour/sharing-regular-cabin-2/"},
+            "Luxury Cabin": {"room_link": "https://lombok-indonesia.org/sehat-alona-lombok-labuan-bajo-komodo-tour/luxury-cabin"},
+            "Grand Deluxe": {"room_link": "https://lombok-indonesia.org/sehat-alona-lombok-labuan-bajo-komodo-tour/grand-deluxe"},
+            "Deluxe Twin": {"room_link": "https://lombok-indonesia.org/sehat-alona-lombok-labuan-bajo-komodo-tour/deluxe-twin"},
+            "Deluxe Triple": {"room_link": "https://lombok-indonesia.org/sehat-alona-lombok-labuan-bajo-komodo-tour/sharing-deluxe-triple"},
+            "Regular Cabin 1": {"room_link": "https://lombok-indonesia.org/sehat-alona-lombok-labuan-bajo-komodo-tour/sharing-regular-cabin-1"},
+            "Regular Cabin 2": {"room_link": "https://lombok-indonesia.org/sehat-alona-lombok-labuan-bajo-komodo-tour/sharing-regular-cabin-2"},
         },
     },
     "Sehat Elona from Labuan Bajo": {
